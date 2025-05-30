@@ -1,13 +1,10 @@
-def solution(random_word, dictionary):
+def preprocess_dictionary(dictionary):
+    return sorted((sorted_word(word), word) for word in dictionary)
+
+
+def solution(random_word, sorted_dictionary):
     sorted_random_word = sorted_word(random_word)
-
-    new_dictionary = []
-    for word in dictionary:
-        new_dictionary.append((sorted_word(word), word))
-    sorted_dic = sorted(new_dictionary)
-
-    anagram = binary_search(sorted_random_word, sorted_dic)
-    return anagram
+    return binary_search(sorted_random_word, sorted_dictionary)
 
 
 def sorted_word(word):
@@ -56,10 +53,22 @@ def load_dictionary(filepath):
 if __name__ == "__main__":
     # words.txt を読み込む
     dictionary = load_dictionary("words.txt")  # week1hw1.py と同じフォルダにある想定
+    sorted_dictionary = preprocess_dictionary(dictionary)
 
     # 調べたい単語
     input_word = "darc"
 
     # アナグラム検索
-    result = solution(input_word, dictionary)
+    result = solution(input_word, sorted_dictionary)
     print(f"Anagrams of '{input_word}': {result}")
+
+
+if __name__ == "__main__":
+    dictionary = load_dictionary("words.txt")
+    sorted_dictionary = preprocess_dictionary(dictionary)
+
+    with open("test_cases.txt") as fin:
+        for line in fin:
+            random_word = line.strip()
+            result = solution(random_word, sorted_dictionary)
+            print(f"{random_word} → {result}")
