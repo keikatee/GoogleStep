@@ -14,13 +14,15 @@ import random, sys, time
 # |key|: string
 # Return value: a hash value
 def calculate_hash(key):
+    """
+    Calculate hash using the given key.
+    Using hint3 from slides. (Think about alice and elica for this code.)
+    """
     assert type(key) == str
-    # Note: This is not a good hash function. Do you see why?
     hash = 0
-    for i in key:
-        hash += ord(i)
+    for c in key:
+        hash = (hash * 31 + ord(c)) % 1000000007 #文字の順番を区別する、素数で衝突を減らす
     return hash
-
 
 # An item object that represents one key - value pair in the hash table.
 class Item:
@@ -38,9 +40,9 @@ class Item:
 # The main data structure of the hash table that stores key - value pairs.
 # The key must be a string. The value can be any type.
 #
-# |self.bucket_size|: The bucket size.
+# |self.bucket_size|: The bucket size.#バケットのサイズ
 # |self.buckets|: An array of the buckets. self.buckets[hash % self.bucket_size]
-#                 stores a linked list of items whose hash value is |hash|.
+#                 stores a linked list of items whose hash value is |hash|.#実際の保存領域
 # |self.item_count|: The total number of items in the hash table.
 class HashTable:
 
@@ -59,11 +61,23 @@ class HashTable:
     # |value|: The value of the item.
     # Return value: True if a new item is added. False if the key already exists
     #               and the value is updated.
+
+    def expand_hash(self):
+        load_factor = self.item_count / self.bucket_size
+        if load_factor > 0.7:
+            self.resize(self.bucket_size * 2)
+
+    def shrink_hash(self):
+        load_factor = self.item_count / self.bucket_size
+        if self.bucket_size > 97 and load_factor < 0.3:
+            self.resize(self.bucket_size // 2)
+
     def put(self, key, value):
         assert type(key) == str
+        self.expand_hash()
         self.check_size() # Note: Don't remove this code.
-        bucket_index = calculate_hash(key) % self.bucket_size
-        item = self.buckets[bucket_index]
+        bucket_index = calculate_hash(key) % self.bucket_size #キーがどのバケットに入っているか
+        item = self.buckets[bucket_index] #そのバケットに入っているアイテム（連結リストの先頭）を取得
         while item:
             if item.key == key:
                 item.value = value
@@ -82,8 +96,8 @@ class HashTable:
     def get(self, key):
         assert type(key) == str
         self.check_size() # Note: Don't remove this code.
-        bucket_index = calculate_hash(key) % self.bucket_size
-        item = self.buckets[bucket_index]
+        bucket_index = calculate_hash(key) % self.bucket_size #キーがどのバケットに入っているか
+        item = self.buckets[bucket_index] #そのバケットに入っているアイテム（連結リストの先頭）を取得
         while item:
             if item.key == key:
                 return (item.value, True)
@@ -97,10 +111,40 @@ class HashTable:
     #               otherwise.
     def delete(self, key):
         assert type(key) == str
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
+        self.check_size()  # Note: Don't remove this code.
+        bucket_index = calculate_hash(key) % self.bucket_size
+
+        prev = None
+        curr = self.buckets[bucket_index]
+        while curr is not None:
+            if curr.key == key:
+                if prev is None:
+                    self.buckets[bucket_index] = curr.next
+                else:
+                    prev.next = curr.next
+                self.item_count -= 1
+                self.shrink_hash()
+                return True
+            prev = curr
+            curr = curr.next
+        return False
+
         pass
+
+    def resize(self, new_size):
+        """Resize the hash function"""
+        new_size = next_prime(new_size)
+        old_buckets = self.buckets
+        self.buckets = [None] * new_size
+        self.bucket_size = new_size
+        self.item_count = 0
+
+        for bucket in old_buckets:
+            item = bucket
+            while bucket is not None:
+                self.put(item.key, item.value)
+                item = item.next
+
 
     # Return the total number of items in the hash table.
     def size(self):
@@ -114,6 +158,21 @@ class HashTable:
     def check_size(self):
         assert (self.bucket_size < 100 or
                 self.item_count >= self.bucket_size * 0.3)
+
+
+def next_prime(n):
+    """Return the next prime number"""
+    def is_prime(x):
+        """Return True if the number is prime number otherwise, return False."""
+        if x <= 1:
+            return False
+        for i in range(2, int(x ** 0.5) + 1):
+            if x % i == 0:
+                return False
+        return True
+    while not is_prime(n):
+        n += 1
+    return n
 
 
 # Test the functional behavior of the hash table.
