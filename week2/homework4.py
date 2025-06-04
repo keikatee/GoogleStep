@@ -1,18 +1,26 @@
 import sys
+from hash_table import Item, HashTable
 
 # Implement a data structure that stores the most recently accessed N pages.
 # See the below test cases to see how it should work.
 #
 # Note: Please do not use a library like collections.OrderedDict). The goal is
 #       to implement the data structure yourself!
+class Website:
+    # Initialize the Website
+    #
+    def __init__(self):
+
+
 
 class Cache:
     # Initialize the cache.
     # |n|: The size of the cache.
     def __init__(self, n):
-        #------------------------#
-        # Write your code here!  #
-        #------------------------#
+        self.cache_size = n #the size of the cache
+        self.head = None #the head of the cache
+        self.tail = None #the tail of the cache
+        self.item_count = 0
         pass
 
     # Access a page and update the cache so that it stores the most recently
