@@ -63,19 +63,38 @@ class HashTable:
     #               and the value is updated.
 
     def expand_hash(self):
+        """
+        Double the hash table size if the load factor exceeds 70%.
+
+        This function checks the current load factor (item_count / bucket_size),
+        and if it's greater than 0.7, it resizes the hash table to twice its current size
+        to maintain efficient performance (average-case O(1) operations).
+        """
         load_factor = self.item_count / self.bucket_size
         if load_factor > 0.7:
             self.resize(self.bucket_size * 2)
 
     def shrink_hash(self):
+        """
+        Halve the hash table size if the load factor drops below 30%.
+
+        This function checks whether the current load factor (item_count / bucket_size)
+        is less than 0.3. If so, and if the current bucket size is greater than the
+        initial size (97), it shrinks the table by resizing it to half its current size.
+
+        Shrinking the table helps save memory when the table is under-utilized,
+        while maintaining a reasonable load factor for performance.
+        :return:
+        """
         load_factor = self.item_count / self.bucket_size
         if self.bucket_size > 97 and load_factor < 0.3:
             self.resize(self.bucket_size // 2)
 
-    def put(self, key, value):
+    def put(self, key, value, check=True):
         assert type(key) == str
-        self.expand_hash()
-        self.check_size() # Note: Don't remove this code.
+        if check:
+            self.expand_hash()
+            self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size #キーがどのバケットに入っているか
         item = self.buckets[bucket_index] #そのバケットに入っているアイテム（連結リストの先頭）を取得
         while item:
@@ -141,8 +160,8 @@ class HashTable:
 
         for bucket in old_buckets:
             item = bucket
-            while bucket is not None:
-                self.put(item.key, item.value)
+            while item is not None:
+                self.put(item.key, item.value, check=False)
                 item = item.next
 
 
