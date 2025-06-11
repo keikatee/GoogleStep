@@ -36,6 +36,16 @@ def read_division(line, index):
     return token, index + 1
 
 
+def read_right_parentheses(line, index):
+    token = {'type': 'RIGHTPARE'}
+    return token, index + 1
+
+
+def read_left_parentheses(line, index):
+    token = {'type': 'LEFTPARE'}
+    return token, index + 1
+
+
 def tokenize(line):
     tokens = []
     index = 0
@@ -50,6 +60,10 @@ def tokenize(line):
             (token, index) = read_plus(line, index)
         elif line[index] == '-':
             (token, index) = read_minus(line, index)
+        elif line[index] == ')':
+            (token, index) = read_right_parentheses(line, index)
+        elif line[index] == '(':
+            (token, index) = read_left_parentheses(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -57,8 +71,32 @@ def tokenize(line):
     return tokens
 
 
+def evaluate_parentheses(tokens):
+    """Evaluate the calculations for the portion in parentheses."""
+    index = 1
+    while index < len(tokens):
+        if tokens[index]['type'] == 'RIGHTPARE':
+            index_left = index - 1
+            while index_left >= 0:
+                if tokens[index_left]['type'] == 'LEFTPARE':
+                    break
+                else:
+                    index_left -= 1
+            part_tokens = tokens[index_left + 1: index]#括弧内のtokens
+            eva_part_tokens = evaluate(part_tokens)#括弧内のtokensの中身を求める
+            tokens = (
+                    tokens[: index_left]
+                    + [{"type": "NUMBER", "number": eva_part_tokens}]
+                    + tokens[index + 1:]
+            )  # 括弧内のtokensの中身をtokens全体に反映させる
+            index = index_left + 1#indexの位置をindex_left+1にし確認していない括弧を確認できるようにセットする
+        else:
+            index += 1
+    return tokens
+
+
 def evaluate_multi_div(tokens):
-    """Evaluate the calculation of multiplication and division."""
+    """Evaluate the multiplication and division calculations."""
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
@@ -91,6 +129,7 @@ def evaluate_multi_div(tokens):
 
 
 def evaluate(tokens):
+    tokens = evaluate_parentheses(tokens)
     tokens = evaluate_multi_div(tokens)
 
     answer = 0
@@ -132,6 +171,10 @@ def run_test():
     test("50+40/2")#check if division is correct
     test("1.0+2/3.0")
     test("20/2.0+60/3.0")
+    test("3*(3+5)")#check if the evaluate_parentheses works
+    test("3*(24/(3+5))")
+    test("3*(24/(3+5))+3")
+    test("3.1*(24/(3-5))-20.1")
 
     print("==== Test finished! ====\n")
 
