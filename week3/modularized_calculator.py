@@ -26,12 +26,26 @@ def read_minus(line, index):
     return token, index + 1
 
 
+def read_multiplication(line, index):
+    token = {'type': 'MULTIPLICATION'}
+    return token, index + 1
+
+
+def read_division(line, index):
+    token = {'type': 'DIVISION'}
+    return token, index + 1
+
+
 def tokenize(line):
     tokens = []
     index = 0
     while index < len(line):
         if line[index].isdigit():
             (token, index) = read_number(line, index)
+        elif line[index] == '*':
+            (token, index) = read_multiplication(line, index)
+        elif line[index] == '/':
+            (token, index) = read_division(line, index)
         elif line[index] == '+':
             (token, index) = read_plus(line, index)
         elif line[index] == '-':
@@ -43,9 +57,44 @@ def tokenize(line):
     return tokens
 
 
+def evaluate_multi_div(tokens):
+    """Evaluate the calculation of multiplication and division."""
+    index = 1
+    while index < len(tokens):
+        if tokens[index]['type'] == 'NUMBER':
+            if tokens[index - 1]['type'] == 'MULTIPLICATION':#index - 1が'MULTIPLICATION'だった場合
+                if tokens[index - 2]['type'] == 'NUMBER':#index - 2が'NUMBER'だった場合
+                    answer = tokens[index - 2]['number'] * tokens[index]['number']
+                    tokens = (
+                        tokens[: index - 2]
+                        + [{"type": "NUMBER", "number": answer}]
+                        + tokens[index + 1:]
+                    )#tokensの中身を掛け算したものに変更
+                    index -= 2
+                else:
+                    print('Invalid syntax')
+                    exit(1)
+            elif tokens[index - 1]['type'] == 'DIVISION':#index - 1が'DIVISION'だった場合
+                if tokens[index - 2]['type'] == 'NUMBER':# index - 2が'NUMBER'だった場合
+                    answer = tokens[index - 2]['number'] / tokens[index]['number']
+                    tokens = (
+                            tokens[: index - 2]
+                            + [{"type": "NUMBER", "number": answer}]
+                            + tokens[index + 1:]
+                    )  # tokensの中身を割り算したものに変更
+                    index -= 2
+                else:
+                    print('Invalid syntax')
+                    exit(1)
+        index += 1
+    return tokens
+
+
 def evaluate(tokens):
+    tokens = evaluate_multi_div(tokens)
+
     answer = 0
-    tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
+    tokens.insert(0, {'type': 'PLUS'})  # Insert a dummy '+' token
     index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
@@ -75,6 +124,15 @@ def run_test():
     print("==== Test started! ====")
     test("1+2")
     test("1.0+2.1-3")
+    test("1.0+2")
+    test("1.0+2.0")
+    test("1+2*4") #check if multiplication is correct
+    test("1.0+2*3.0")
+    test("1*0.1+20*3.0")
+    test("50+40/2")#check if division is correct
+    test("1.0+2/3.0")
+    test("20/2.0+60/3.0")
+
     print("==== Test finished! ====\n")
 
 run_test()
