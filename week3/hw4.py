@@ -203,8 +203,8 @@ def evaluate_multi_div(tokens):
 
 
 def evaluate(tokens):
-    tokens = evaluate_parentheses(tokens)
     tokens = evaluate_function_calls(tokens)
+    tokens = evaluate_parentheses(tokens)
     tokens = evaluate_multi_div(tokens)
 
     answer = 0
@@ -251,8 +251,10 @@ def run_test():
     test("3*(24/(3+5))+3")
     test("3.1*(24/(3-5))-20.1")
     test("abs(2.4)")#check if the abs function works
-    test("int(3.0)")#check if the int function works
-    test("round(2.5)")#check if the round function works
+    test("int(3.5)")#check if the int function works
+    test("round(2.7)")#check if the round function works
+    test("abs(int(2.5)*(-8))")
+    test("round(4.8)/2+8.5")
     test("12+abs(int(round(-1.55)+abs(int(-2.3+4))))")
 
     print("==== Test finished! ====\n")
