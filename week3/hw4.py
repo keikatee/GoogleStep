@@ -202,11 +202,8 @@ def evaluate_multi_div(tokens):
     return tokens
 
 
-def evaluate(tokens):
-    tokens = evaluate_function_calls(tokens)
-    tokens = evaluate_parentheses(tokens)
-    tokens = evaluate_multi_div(tokens)
-
+def evaluate_plus_minus(tokens):
+    """Evaluate the plus and minus calculations."""
     answer = 0
     tokens.insert(0, {'type': 'PLUS'})  # Insert a dummy '+' token
     index = 1
@@ -221,6 +218,13 @@ def evaluate(tokens):
                 exit(1)
         index += 1
     return answer
+
+
+def evaluate(tokens):
+    tokens = evaluate_function_calls(tokens)
+    tokens = evaluate_parentheses(tokens)
+    tokens = evaluate_multi_div(tokens)
+    return evaluate_plus_minus(tokens)
 
 
 def test(line):
